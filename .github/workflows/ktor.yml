@@ -47,6 +47,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
             - name: Run lint
+      - name: Run lint
         run: |
           ./gradlew --continue ktlintCheck
       - name: Run tests
