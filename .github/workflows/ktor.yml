@@ -1,0 +1,82 @@
+name: Ktor build and deploy
+on:
+  workflow_call:
+    inputs:
+      app:
+        required: false
+        default: ${{ github.event.repository.name }}
+        type: string
+      dev-cluster:
+        required: false
+        default: dev-gcp
+        type: string
+      prod-cluster:
+        required: false
+        default: prod-gcp
+        type: string
+
+jobs:
+  build-and-publish:
+    name: Bygg, test og publiser docker image
+    runs-on: ubuntu-latest
+    outputs:
+      image: ${{ steps.docker-build-push.outputs.image }}
+    env:
+      ORG_GRADLE_PROJECT_githubUser: x-access-token
+      ORG_GRADLE_PROJECT_githubPassword: ${{ secrets.GITHUB_TOKEN }}
+    permissions:
+      contents: "read"
+      id-token: "write"
+    steps:
+      - name: Setup java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17.x'
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Gradle wrapper validation
+        uses: gradle/wrapper-validation-action@v1
+      - name: Setup gradle dependency cache
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/.*gradle*') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+            - name: Run lint
+        run: |
+          ./gradlew --continue ktlintCheck
+      - name: Run tests
+        run: |
+          ./gradlew test
+      - name: Build jar
+        run: |
+          ./gradlew shadowJar -x test
+      - name: Install cosign
+        uses: sigstore/cosign-installer@main
+        with:
+          cosign-release: 'v1.3.1'
+      - name: Verify distroless base image
+        run: |
+          cosign verify --key distroless.pub gcr.io/distroless/java17
+      - name: Build and publish Docker image
+        uses: nais/docker-build-push@v0
+        id: docker-build-push
+        with:
+          team: teamsykefravr
+          identity_provider: ${{ secrets.NAIS_WORKLOAD_IDENTITY_PROVIDER }}
+          project_id: ${{ vars.NAIS_MANAGEMENT_PROJECT_ID }}
+          tag: ${{ github.sha }}
+
+  nais-deploy:
+    needs: build-and-publish
+    uses: navikt/isyfo-github-actions-workflows/.github/workflows/nais-deploy-dev-og-prod.yml@master
+    with:
+      image: ${{ needs.build-and-publish.outputs.image }}
+      app: ${{ inputs.app }}
+      dev-cluster: ${{ inputs.dev-cluster }}
+      prod-cluster: ${{ inputs.prod-cluster }}
+    secrets: inherit

@@ -1,0 +1,52 @@
+name: Nais deploy dev og prod
+on:
+  workflow_call:
+    inputs:
+      image:
+        required: true
+        type: string
+      dev-cluster:
+        required: false
+        default: dev-gcp
+        type: string
+      prod-cluster:
+        required: false
+        default: prod-gcp
+        type: string
+      dev-nais-template:
+        required: false
+        default: .nais/naiserator-dev.yaml
+        type: string
+      prod-nais-template:
+        required: false
+        default: .nais/naiserator-prod.yaml
+        type: string
+
+jobs:
+  deploy-til-dev:
+    if: github.ref_name == 'master'
+    name: Deploy til dev
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: nais/deploy/actions/deploy@v1
+        name: Deploy til dev
+        env:
+          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
+          CLUSTER: ${{ inputs.dev-cluster }}
+          IMAGE: ${{ inputs.image }}
+          RESOURCE: ${{ inputs.dev-nais-template }}
+
+  deploy-til-prod:
+    if: github.ref_name == 'master'
+    name: Deploy til prod
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: nais/deploy/actions/deploy@v1
+        name: Deploy til prod
+        env:
+          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
+          CLUSTER: ${{ inputs.prod-cluster }}
+          IMAGE: ${{ inputs.image }}
+          RESOURCE: ${{ inputs.prod-nais-template }}
