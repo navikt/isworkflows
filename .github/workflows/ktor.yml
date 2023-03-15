@@ -2,10 +2,6 @@ name: Ktor build and deploy
 on:
   workflow_call:
     inputs:
-      app:
-        required: false
-        default: ${{ github.event.repository.name }}
-        type: string
       dev-cluster:
         required: false
         default: dev-gcp
@@ -77,7 +73,6 @@ jobs:
     uses: navikt/isyfo-github-actions-workflows/.github/workflows/nais-deploy-dev-og-prod.yml@master
     with:
       image: ${{ needs.build-and-publish.outputs.image }}
-      app: ${{ inputs.app }}
       dev-cluster: ${{ inputs.dev-cluster }}
       prod-cluster: ${{ inputs.prod-cluster }}
     secrets: inherit
