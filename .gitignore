@@ -1,0 +1,6 @@
+# Idea project files
+*.iml
+.idea/
+
+# OS specific
+.DS_Store
