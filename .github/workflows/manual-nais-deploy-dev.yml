@@ -15,14 +15,13 @@ on:
         default: .nais/naiserator-dev.yaml
         type: string
       git-commit:
-        description: "Complete git commit to deploy"
         required: true
-        default: ""
+        type: string
 
 
 jobs:
   deploy-dev:
-    name: Deploy to NAIS Dev-gcp
+    name: Deploy to dev
     runs-on: ubuntu-latest
     permissions:
       contents: "read"
