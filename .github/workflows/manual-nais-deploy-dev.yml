@@ -14,7 +14,7 @@ on:
         required: false
         default: .nais/naiserator-dev.yaml
         type: string
-      gitCommit:
+      git-commit:
         description: "Complete git commit to deploy"
         required: true
         default: ""
@@ -40,4 +40,4 @@ jobs:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: ${{ inputs.dev-cluster }}
           RESOURCE: ${{ inputs.dev-nais-template }}
-          VAR: image=${{ steps.login.outputs.registry }}/${{ inputs.app }}:${{ github.event.inputs.gitCommit }}
+          VAR: image=${{ steps.login.outputs.registry }}/${{ inputs.app }}:${{ inputs.git-commit }}
