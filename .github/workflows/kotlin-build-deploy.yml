@@ -1,4 +1,4 @@
-name: Ktor build and deploy
+name: Kotlin build and deploy
 on:
   workflow_call:
     inputs:
