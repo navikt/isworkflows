@@ -1,6 +1,6 @@
-# isyfo-github-actions-workflows
+# isworkflows
 
-Gjenbrukbare github action workflows.
+Gjenbrukbare github action workflows for Team iSyfo.
 
 ## Contact
 
