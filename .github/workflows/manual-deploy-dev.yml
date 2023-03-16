@@ -3,9 +3,6 @@ name: Manual deploy to dev
 on:
   workflow_call:
     inputs:
-      #app:
-        #required: true
-        #type: string
       dev-cluster:
         required: false
         default: dev-gcp
