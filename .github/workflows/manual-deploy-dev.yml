@@ -1,4 +1,4 @@
-name: Deploy to dev
+name: Manual deploy to dev
 
 on:
   workflow_call:
@@ -21,7 +21,6 @@ on:
 
 jobs:
   deploy-dev:
-    name: Deploy to dev
     runs-on: ubuntu-latest
     permissions:
       contents: "read"
