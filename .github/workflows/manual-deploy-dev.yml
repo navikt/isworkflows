@@ -3,9 +3,9 @@ name: Manual deploy to dev
 on:
   workflow_call:
     inputs:
-      app:
-        required: true
-        type: string
+      #app:
+        #required: true
+        #type: string
       dev-cluster:
         required: false
         default: dev-gcp
@@ -38,4 +38,4 @@ jobs:
           APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: ${{ inputs.dev-cluster }}
           RESOURCE: ${{ inputs.dev-nais-template }}
-          VAR: image=${{ steps.login.outputs.registry }}/${{ inputs.app }}:${{ inputs.git-commit }}
+          VAR: image=${{ steps.login.outputs.registry }}/${{ github.event.repository.name }}:${{ inputs.git-commit }}
