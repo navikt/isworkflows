@@ -40,6 +40,7 @@ jobs:
   deploy-til-prod:
     if: github.ref_name == 'master'
     name: Deploy til prod
+    needs: deploy-til-dev
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
