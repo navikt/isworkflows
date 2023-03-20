@@ -72,7 +72,7 @@ jobs:
 
   nais-deploy:
     needs: build-and-publish
-    uses: navikt/isyfo-github-actions-workflows/.github/workflows/deploy-dev-og-prod.yml@master
+    uses: navikt/isworkflows/.github/workflows/deploy-dev-og-prod.yml@master
     with:
       image: ${{ needs.build-and-publish.outputs.image }}
       dev-cluster: ${{ inputs.dev-cluster }}
