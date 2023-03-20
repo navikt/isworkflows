@@ -1,0 +1,80 @@
+name: Node build and deploy
+on:
+  workflow_call:
+    inputs:
+      dev-cluster:
+        required: false
+        default: dev-gcp
+        type: string
+      prod-cluster:
+        required: false
+        default: prod-gcp
+        type: string
+      node-version:
+        required: false
+        default: 14
+        type: string
+
+jobs:
+  build-and-publish:
+    name: Bygg, test og publiser docker image
+    runs-on: ubuntu-latest
+    outputs:
+      image: ${{ steps.docker-build-push.outputs.image }}
+    env:
+      ORG_GRADLE_PROJECT_githubUser: x-access-token
+      ORG_GRADLE_PROJECT_githubPassword: ${{ secrets.GITHUB_TOKEN }}
+    permissions:
+      contents: "read"
+      id-token: "write"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Use Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ inputs.node-version }}
+      - name: Cache node modules
+        uses: actions/cache@v3
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+      - name: Install deps
+        run: |
+          npm install
+      - name: Prettier check 💅
+        run: |
+          npx prettier --check .
+      - name: Run lint and typecheck
+        run: |
+          npm run lint-and-typecheck
+      - name: Run unit tests
+        run: |
+          npm run test
+      - name: Build
+        run: |
+          npm run build
+      - name: Prune
+        run: |
+          npm prune --production
+      - name: Build and publish Docker image
+        uses: nais/docker-build-push@v0
+        id: docker-build-push
+        with:
+          team: teamsykefravr
+          identity_provider: ${{ secrets.NAIS_WORKLOAD_IDENTITY_PROVIDER }}
+          project_id: ${{ vars.NAIS_MANAGEMENT_PROJECT_ID }}
+          tag: ${{ github.sha }}
+
+  nais-deploy:
+    needs: build-and-publish
+    uses: navikt/isyfo-github-actions-workflows/.github/workflows/deploy-dev-og-prod.yml@master
+    with:
+      image: ${{ needs.build-and-publish.outputs.image }}
+      dev-cluster: ${{ inputs.dev-cluster }}
+      prod-cluster: ${{ inputs.prod-cluster }}
+    secrets: inherit
