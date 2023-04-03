@@ -70,6 +70,7 @@ jobs:
       - name: Build and publish Docker image
         uses: nais/docker-build-push@v0
         id: docker-build-push
+        if: github.triggering_actor != 'dependabot[bot]'
         with:
           team: teamsykefravr
           identity_provider: ${{ secrets.NAIS_WORKLOAD_IDENTITY_PROVIDER }}
