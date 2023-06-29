@@ -73,7 +73,7 @@ jobs:
       - name: Verify distroless base image
         if:  ${{ inputs.distroless }}
         run: |
-          cosign verify --key distroless.pub gcr.io/distroless/nodejs${{ inputs.node-version }}-debian11
+          cosign verify gcr.io/distroless/nodejs16-debian11 --certificate-oidc-issuer https://accounts.google.com --certificate-identity keyless@distroless.iam.gserviceaccount.com
       - name: Build and publish Docker image
         uses: nais/docker-build-push@v0
         id: docker-build-push
