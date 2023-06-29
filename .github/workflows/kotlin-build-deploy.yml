@@ -62,7 +62,7 @@ jobs:
         if:  ${{ inputs.distroless }}
         uses: sigstore/cosign-installer@main
         with:
-          cosign-release: 'v1.3.1'
+          cosign-release: 'v2.1.1'
       - name: Verify distroless base image
         if:  ${{ inputs.distroless }}
         run: |
