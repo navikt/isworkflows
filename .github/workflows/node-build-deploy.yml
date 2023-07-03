@@ -49,7 +49,7 @@ jobs:
             ${{ runner.os }}-
       - name: Install deps
         run: |
-          npm install
+          npm install --legacy-peer-deps
       - name: Prettier check 💅
         run: |
           npx prettier --check .
@@ -64,7 +64,7 @@ jobs:
           npm run build
       - name: Prune
         run: |
-          npm prune --production
+          npm prune --omit=dev --legacy-peer-deps
       - name: Install cosign
         if:  ${{ inputs.distroless }}
         uses: sigstore/cosign-installer@main
@@ -73,7 +73,7 @@ jobs:
       - name: Verify distroless base image
         if:  ${{ inputs.distroless }}
         run: |
-          cosign verify gcr.io/distroless/nodejs16-debian11 --certificate-oidc-issuer https://accounts.google.com --certificate-identity keyless@distroless.iam.gserviceaccount.com
+          cosign verify gcr.io/distroless/nodejs18-debian11 --certificate-oidc-issuer https://accounts.google.com --certificate-identity keyless@distroless.iam.gserviceaccount.com
       - name: Build and publish Docker image
         uses: nais/docker-build-push@v0
         id: docker-build-push
