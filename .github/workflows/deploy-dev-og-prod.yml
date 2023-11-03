@@ -28,7 +28,7 @@ jobs:
     name: Deploy til dev
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: nais/deploy/actions/deploy@v1
         name: Deploy til dev
         env:
@@ -43,7 +43,7 @@ jobs:
     needs: deploy-til-dev
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: nais/deploy/actions/deploy@v1
         name: Deploy til prod
         env:
