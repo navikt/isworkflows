@@ -29,10 +29,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: nais/deploy/actions/deploy@v1
+      - uses: nais/deploy/actions/deploy@v2
         name: Deploy til dev
         env:
-          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: ${{ inputs.dev-cluster }}
           IMAGE: ${{ inputs.image }}
           RESOURCE: ${{ inputs.dev-nais-template }}
@@ -44,10 +43,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: nais/deploy/actions/deploy@v1
+      - uses: nais/deploy/actions/deploy@v2
         name: Deploy til prod
         env:
-          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
           CLUSTER: ${{ inputs.prod-cluster }}
           IMAGE: ${{ inputs.image }}
           RESOURCE: ${{ inputs.prod-nais-template }}
