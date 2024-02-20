@@ -24,7 +24,7 @@ on:
 
 jobs:
   deploy-til-dev:
-    if: github.ref_name == 'master'
+    if: github.ref_name == 'master' || github.ref_name == 'main'
     name: Deploy til dev
     runs-on: ubuntu-latest
     steps:
@@ -38,7 +38,7 @@ jobs:
           RESOURCE: ${{ inputs.dev-nais-template }}
 
   deploy-til-prod:
-    if: github.ref_name == 'master'
+    if: github.ref_name == 'master' || github.ref_name == 'main'
     name: Deploy til prod
     needs: deploy-til-dev
     runs-on: ubuntu-latest
