@@ -70,6 +70,8 @@ jobs:
       - name: Build and publish Docker image
         uses: nais/docker-build-push@v0
         id: docker-build-push
+        env:
+          ACTIONS_RUNTIME_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         if: (!startsWith(github.ref_name, 'dependabot'))
         with:
           team: teamsykefravr
