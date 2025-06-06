@@ -37,7 +37,7 @@ jobs:
           java-version: '21'
           cache: 'gradle'
       - name: Gradle wrapper validation
-        uses: gradle/wrapper-validation-action@v2
+        uses: gradle/actions/wrapper-validation@v4
       - name: Run lint
         run: |
           ./gradlew --continue ktlintCheck
