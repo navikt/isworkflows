@@ -46,7 +46,7 @@ jobs:
           cache: 'npm'
       - name: Install deps
         run: |
-          npm install --legacy-peer-deps
+          npm ci --legacy-peer-deps --ignore-scripts
         env:
           NPM_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Prettier check 💅
