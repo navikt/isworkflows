@@ -39,8 +39,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      - name: Set up .npmrc
-        run: echo "ignore-scripts=true" >> .npmrc
       - name: Use Node
         uses: actions/setup-node@v4
         with:

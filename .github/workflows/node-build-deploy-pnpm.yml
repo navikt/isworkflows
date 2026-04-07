@@ -28,8 +28,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
-      - name: Set up .npmrc
-        run: echo "ignore-scripts=true" >> .npmrc
       - name: Setup pnpm
         uses: pnpm/action-setup@v5
         with:
