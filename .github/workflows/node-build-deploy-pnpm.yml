@@ -12,16 +12,8 @@ on:
         type: string
       node-version:
         required: false
-        default: 14
+        default: 22
         type: string
-      distroless:
-        required: false
-        default: false
-        type: boolean
-      buildServer:
-        required: false
-        default: false
-        type: boolean
 
 jobs:
   build-and-publish:
@@ -29,56 +21,45 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       image: ${{ steps.docker-build-push.outputs.image }}
-    env:
-      ORG_GRADLE_PROJECT_githubUser: x-access-token
-      ORG_GRADLE_PROJECT_githubPassword: ${{ secrets.GITHUB_TOKEN }}
     permissions:
       contents: "read"
       id-token: "write"
       packages: "read"
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Set up .npmrc
         run: echo "ignore-scripts=true" >> .npmrc
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v5
+        with:
+          run_install: false
       - name: Use Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ inputs.node-version }}
-          cache: 'npm'
+          cache: 'pnpm'
+          registry-url: 'https://npm.pkg.github.com'
       - name: Install deps
         run: |
-          npm ci --legacy-peer-deps --ignore-scripts
+          pnpm install --frozen-lockfile
         env:
-          NPM_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Prettier check 💅
         run: |
-          npx prettier --check .
+          pnpm exec prettier --check .
       - name: Run lint and typecheck
         run: |
-          npm run lint-and-typecheck
+          pnpm run lint-and-typecheck
       - name: Run unit tests
         run: |
-          npm run test
+          pnpm run test
       - name: Build
         run: |
-          npm run build
-      - name: Build server
-        if:  ${{ inputs.buildServer }}
-        run: |
-          npm run build:server
+          pnpm run build
       - name: Prune
         run: |
-          npm prune --omit=dev --legacy-peer-deps
-      - name: Install cosign
-        if:  ${{ inputs.distroless }}
-        uses: sigstore/cosign-installer@main
-        with:
-          cosign-release: 'v2.4.3'
-      - name: Verify distroless base image
-        if:  ${{ inputs.distroless }}
-        run: |
-          cosign verify gcr.io/distroless/nodejs22-debian12 --certificate-oidc-issuer https://accounts.google.com --certificate-identity keyless@distroless.iam.gserviceaccount.com
+          pnpm prune --prod
       - name: Build and publish Docker image
         uses: nais/docker-build-push@v0
         id: docker-build-push
