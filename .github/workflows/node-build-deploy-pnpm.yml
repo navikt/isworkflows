@@ -1,0 +1,76 @@
+name: Node build and deploy
+on:
+  workflow_call:
+    inputs:
+      dev-cluster:
+        required: false
+        default: dev-gcp
+        type: string
+      prod-cluster:
+        required: false
+        default: prod-gcp
+        type: string
+      node-version:
+        required: false
+        default: 22
+        type: string
+
+jobs:
+  build-and-publish:
+    name: Bygg, test og publiser docker image
+    runs-on: ubuntu-latest
+    outputs:
+      image: ${{ steps.docker-build-push.outputs.image }}
+    permissions:
+      contents: "read"
+      id-token: "write"
+      packages: "read"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v5
+        with:
+          run_install: false
+      - name: Use Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: 'pnpm'
+          registry-url: 'https://npm.pkg.github.com'
+      - name: Install deps
+        run: |
+          pnpm install --frozen-lockfile
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Prettier check 💅
+        run: |
+          pnpm exec prettier --check .
+      - name: Run lint and typecheck
+        run: |
+          pnpm run lint-and-typecheck
+      - name: Run unit tests
+        run: |
+          pnpm run test
+      - name: Build
+        run: |
+          pnpm run build
+      - name: Prune
+        run: |
+          pnpm prune --prod
+      - name: Build and publish Docker image
+        uses: nais/docker-build-push@v0
+        id: docker-build-push
+        if: (!startsWith(github.ref_name, 'dependabot'))
+        with:
+          team: teamsykefravr
+          tag: ${{ github.sha }}
+
+  nais-deploy:
+    needs: build-and-publish
+    uses: navikt/isworkflows/.github/workflows/deploy-dev-og-prod.yml@master
+    with:
+      image: ${{ needs.build-and-publish.outputs.image }}
+      dev-cluster: ${{ inputs.dev-cluster }}
+      prod-cluster: ${{ inputs.prod-cluster }}
+    secrets: inherit
