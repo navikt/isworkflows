@@ -41,7 +41,7 @@ jobs:
         run: |
           pnpm install --frozen-lockfile
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Prettier check 💅
         run: |
           pnpm exec prettier --check .
