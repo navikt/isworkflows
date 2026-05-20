@@ -35,10 +35,15 @@ jobs:
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
       - name: Notify Slack
         if: steps.auto-merge.conclusion == 'success'
-        run: |
+          response="$(curl -fsS -X POST https://slack.com/api/chat.postMessage \
           curl -s -X POST https://slack.com/api/chat.postMessage \
             -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
-            -H "Content-Type: application/json" \
+            -d "$(jq -n --arg channel "$SLACK_CHANNEL_ID" --arg text "🤖 Auto-merge enabled: $PR_TITLE (<$PR_URL|link>)" '{channel: $channel, text: $text}')")"
+
+          if ! echo "$response" | jq -e '.ok == true' > /dev/null; then
+            echo "Slack notification failed: $response"
+            exit 1
+          fi
             -d "$(jq -n --arg channel "$SLACK_CHANNEL_ID" --arg text "🤖 Auto-merge enabled: $PR_TITLE (<$PR_URL|link>)" '{channel: $channel, text: $text}')"
         env:
           SLACK_BOT_TOKEN: ${{secrets.SLACK_BOT_TOKEN}}
