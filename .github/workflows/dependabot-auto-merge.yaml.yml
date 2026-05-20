@@ -26,8 +26,21 @@ jobs:
         with:
           github-token: "${{ secrets.GITHUB_TOKEN }}"
       - name: Auto-merge changes from Dependabot
+        id: auto-merge
         if: steps.freeze-check.outputs.frozen == 'false' && (steps.metadata.outputs.update-type != 'version-update:semver-major' || steps.metadata.outputs.package-ecosystem == 'github_actions')
         run: gh pr merge --auto --squash "$PR_URL"
         env:
           PR_URL: ${{github.event.pull_request.html_url}}
           GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+      - name: Notify Slack
+        if: steps.auto-merge.conclusion == 'success'
+        run: |
+          curl -s -X POST https://slack.com/api/chat.postMessage \
+            -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -n --arg channel "$SLACK_CHANNEL_ID" --arg text "🤖 Auto-merge enabled: $PR_TITLE (<$PR_URL|link>)" '{channel: $channel, text: $text}')"
+        env:
+          SLACK_BOT_TOKEN: ${{secrets.SLACK_BOT_TOKEN}}
+          SLACK_CHANNEL_ID: C01GAGBDVLM # isyfo-pr
+          PR_TITLE: ${{github.event.pull_request.title}}
+          PR_URL: ${{github.event.pull_request.html_url}}
