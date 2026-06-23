@@ -42,10 +42,14 @@ jobs:
           pnpm install --frozen-lockfile
         env:
           NPM_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - name: Prettier check 💅
+      - name: Format check 💅
         run: |
-          pnpm exec prettier --check .
-      - name: Run lint and typecheck
+          if pnpm pkg get scripts.fmt:check | grep -qv null; then
+            pnpm run fmt:check
+          else
+            pnpm exec prettier --check .
+          fi
+      - name: Run lint and typecheck 🤓
         run: |
           pnpm run lint-and-typecheck
       - name: Run unit tests
