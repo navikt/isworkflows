@@ -44,7 +44,7 @@ jobs:
           NPM_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Format check 💅
         run: |
-          if pnpm pkg get scripts.fmt:check | grep -qv null; then
+          if node -e "process.exit(require('./package.json').scripts?.['fmt:check'] ? 0 : 1)"; then
             pnpm run fmt:check
           else
             pnpm exec prettier --check .
