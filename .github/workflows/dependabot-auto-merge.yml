@@ -14,11 +14,11 @@ jobs:
       - name: Check freeze window
         id: freeze-check
         run: |
-# Freeze auto-merge during two windows (Europe/Oslo time):
-#   - Year-end: Dec 20 (1220) through Jan 02 (102)
-#   - Summer:   Jul 10 (710) through Aug 10 (810)
-# MONTH_DAY is today's date derived from MMDD (e.g., 0710 -> 710) as a base-10 integer.
-# When inside a window, frozen=true and later steps skip the merge.
+          # Freeze auto-merge during two windows (Europe/Oslo time):
+          #   - Year-end: Dec 20 (1220) through Jan 02 (102)
+          #   - Summer:   Jul 10 (710) through Aug 10 (810)
+          # MONTH_DAY is today's date derived from MMDD (e.g., 0710 -> 710) as a base-10 integer.
+          # When inside a window, frozen=true and later steps skip the merge.
           MONTH_DAY=$((10#$(TZ="Europe/Oslo" date +%m%d)))
           if (( MONTH_DAY >= 1220 || MONTH_DAY <= 102 || ( MONTH_DAY >= 710 && MONTH_DAY <= 810 ) )); then
             echo "frozen=true" >> "$GITHUB_OUTPUT"
