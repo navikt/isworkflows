@@ -14,18 +14,6 @@ const MULIGE_AGENTER = [
   "U0AKKLHS3N1", // Peter
 ];
 
-const AGENT_GIFS = [
-  "https://media4.giphy.com/media/v1.Y2lkPTc5MGI3NjExNG1iMGNnbGR4MmxqZ3ZhcXh6Mnh4N2VxOGVoNjF5dTc5bG93ODR4diZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/umh24MvNmRCBq/giphy.gif",
-  "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExNGlrZHZyYWE3azhsMGpncTM4Mnc2dXA0aTBoejhuZm9laWd2dDgwZyZlcD12MV9naWZzX3NlYXJjaCZjdD1n/119LVmecQWrzlm/giphy.gif",
-  "https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExajhwMDB0aGdoaXU3amdoZWVqc3hraXhuM3ByemdoMWZlcTV1aGx1dSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/0HMhOCi7k9BH0BPdM5/giphy.gif",
-  "https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3eXI1czN4MDI2YW94MmI4dWt2bzhmd3g2cjhlMWZiajVxMm90ejI1bSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/Xw6yFn7frR3Y4/giphy.gif",
-  "https://media.giphy.com/media/v1.Y2lkPWVjZjA1ZTQ3aWh0Zzd3NWs2a2g3c3BqNmdud2xrd2c3d3dwbW5qb2VsM2Fia2w4aSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/cYZkY9HeKgofpQnOUl/giphy.gif",
-];
-
-function randomGif(): string {
-  return AGENT_GIFS[Math.floor(Math.random() * AGENT_GIFS.length)];
-}
-
 const TIMEZONE = "Europe/Oslo";
 
 /** Returns midnight UTC of today's calendar date in the Oslo timezone. */
@@ -74,7 +62,6 @@ async function run() {
     text,
     blocks: [
       { type: "section", text: { type: "mrkdwn", text } },
-      { type: "image", image_url: randomGif(), alt_text: "agent gif" },
     ],
   });
 }
