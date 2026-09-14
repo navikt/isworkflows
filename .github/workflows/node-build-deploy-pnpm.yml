@@ -39,10 +39,15 @@ jobs:
           cache: 'pnpm'
       - name: Install deps
         run: |
-          pnpm config set //npm.pkg.github.com/:_authToken "${{ secrets.GITHUB_TOKEN }}"
           pnpm install --frozen-lockfile
         env:
-          NPM_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          pnpm_config__auth: |
+            {
+              "https://npm.pkg.github.com/": {
+                "@nais": { "authToken": "${{ secrets.GITHUB_TOKEN }}" },
+                "@navikt": { "authToken": "${{ secrets.GITHUB_TOKEN }}" }
+              }
+            }
       - name: Format check 💅
         run: |
           if node -e "process.exit(require('./package.json').scripts?.['fmt:check'] ? 0 : 1)"; then
