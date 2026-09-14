@@ -50,11 +50,7 @@ jobs:
             }
       - name: Format check 💅
         run: |
-          if node -e "process.exit(require('./package.json').scripts?.['fmt:check'] ? 0 : 1)"; then
-            pnpm run fmt:check
-          else
-            pnpm exec prettier --check .
-          fi
+          pnpm run fmt:check
       - name: Run lint and typecheck 🤓
         run: |
           pnpm run lint-and-typecheck
