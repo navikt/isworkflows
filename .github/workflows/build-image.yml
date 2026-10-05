@@ -1,0 +1,84 @@
+name: Build and publish image
+
+on:
+  workflow_call:
+    inputs:
+      git-ref:
+        required: false
+        type: string
+      build-type:
+        required: false
+        default: auto
+        type: string
+      node-version:
+        required: false
+        default: '22'
+        type: string
+      publish-image:
+        required: false
+        default: true
+        type: boolean
+    outputs:
+      image:
+        value: ${{ jobs.build-kotlin.outputs.image || jobs.build-node.outputs.image }}
+
+jobs:
+  resolve-build:
+    runs-on: ubuntu-latest
+    outputs:
+      type: ${{ steps.build.outputs.type }}
+      commit: ${{ steps.build.outputs.commit }}
+    permissions:
+      contents: "read"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.git-ref || github.sha }}
+      - name: Resolve build type and image tag
+        id: build
+        env:
+          BUILD_TYPE: ${{ inputs.build-type }}
+        run: |
+          set -euo pipefail
+          if [[ "$BUILD_TYPE" == auto ]]; then
+            if [[ -f gradlew && -f pnpm-lock.yaml ]]; then
+              echo "::error::Both Gradle and pnpm builds detected; specify build-type."
+              exit 1
+            elif [[ -f gradlew ]]; then
+              BUILD_TYPE=kotlin
+            elif [[ -f pnpm-lock.yaml ]]; then
+              BUILD_TYPE=node
+            else
+              echo "::error::No supported build found (expected gradlew or pnpm-lock.yaml)."
+              exit 1
+            fi
+          fi
+          case "$BUILD_TYPE" in
+            kotlin|node) ;;
+            *)
+              echo "::error::Unsupported build-type: $BUILD_TYPE"
+              exit 1
+              ;;
+          esac
+          echo "type=$BUILD_TYPE" >> "$GITHUB_OUTPUT"
+          echo "commit=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+  build-kotlin:
+    needs: resolve-build
+    if: needs.resolve-build.outputs.type == 'kotlin'
+    uses: ./.github/workflows/kotlin-build-image.yml
+    with:
+      git-ref: ${{ needs.resolve-build.outputs.commit }}
+      publish-image: ${{ inputs.publish-image }}
+    secrets: inherit
+
+  build-node:
+    needs: resolve-build
+    if: needs.resolve-build.outputs.type == 'node'
+    uses: ./.github/workflows/node-build-image-pnpm.yml
+    with:
+      git-ref: ${{ needs.resolve-build.outputs.commit }}
+      node-version: ${{ inputs.node-version }}
+      publish-image: ${{ inputs.publish-image }}
+    secrets: inherit
