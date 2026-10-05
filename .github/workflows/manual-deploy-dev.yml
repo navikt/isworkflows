@@ -12,24 +12,90 @@ on:
         default: .nais/naiserator-dev.yaml
         type: string
       git-commit:
-        required: true
+        description: Commit to deploy; defaults to the latest commit on the selected branch.
+        required: false
+        type: string
+      build-type:
+        description: Application build type (auto, kotlin, or node).
+        required: false
+        default: auto
+        type: string
+      node-version:
+        required: false
+        default: '22'
         type: string
 
-
 jobs:
+  check-image:
+    runs-on: ubuntu-latest
+    outputs:
+      commit: ${{ steps.commit.outputs.sha }}
+      image: ${{ steps.image.outputs.image }}
+      exists: ${{ steps.image.outputs.exists }}
+    permissions:
+      contents: "read"
+      id-token: "write"
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.git-commit || github.ref }}
+      - name: Resolve commit
+        id: commit
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      - uses: nais/login@v0
+        id: login
+        with:
+          team: teamsykefravr
+      - name: Check for existing image
+        id: image
+        env:
+          REGISTRY: ${{ steps.login.outputs.registry }}
+          COMMIT: ${{ steps.commit.outputs.sha }}
+        run: |
+          set -euo pipefail
+          repository="${GITHUB_REPOSITORY##*/}"
+          image="$REGISTRY/${repository,,}:$COMMIT"
+          echo "image=$image" >> "$GITHUB_OUTPUT"
+          if output=$(docker buildx imagetools inspect "$image" 2>&1); then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          elif grep -Eqi 'manifest unknown|MANIFEST_UNKNOWN|NAME_UNKNOWN|: not found$' <<< "$output"; then
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          else
+            printf '%s\n' "$output" >&2
+            echo "::error::Failed to check image in registry."
+            exit 1
+          fi
+
+  build-image:
+    needs: check-image
+    if: needs.check-image.outputs.exists == 'false'
+    uses: ./.github/workflows/build-image.yml
+    with:
+      git-ref: ${{ needs.check-image.outputs.commit }}
+      build-type: ${{ inputs.build-type }}
+      node-version: ${{ inputs.node-version }}
+    secrets: inherit
+    permissions:
+      contents: "read"
+      id-token: "write"
+      packages: "read"
+
   deploy-dev:
+    needs: [check-image, build-image]
+    if: >-
+      always() && !cancelled() && needs.check-image.result == 'success' &&
+      (needs.check-image.outputs.exists == 'true' ||
+       (needs.build-image.result == 'success' && needs.build-image.outputs.image != ''))
     runs-on: ubuntu-latest
     permissions:
       contents: "read"
       id-token: "write"
     steps:
       - uses: actions/checkout@v6
-      - uses: nais/login@v0
-        id: login
         with:
-          team: teamsykefravr
+          ref: ${{ needs.check-image.outputs.commit }}
       - uses: nais/deploy/actions/deploy@v2
         env:
           CLUSTER: ${{ inputs.dev-cluster }}
           RESOURCE: ${{ inputs.dev-nais-template }}
-          VAR: image=${{ steps.login.outputs.registry }}/${{ github.event.repository.name }}:${{ inputs.git-commit }}
+          VAR: image=${{ needs.check-image.outputs.image }}
