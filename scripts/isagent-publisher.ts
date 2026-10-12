@@ -8,7 +8,6 @@ const channelId = process.env.SLACK_CHANNEL_ID!;
 const MULIGE_AGENTER = [
   "U77CMGUJ2", // Daniel
   "U0AU9EB7F61", // Marius
-  "U0163L554HH", // Eirik
   "U01PLCAA12R", // Geir
   "U0AKKLHS3N1", // Peter
 ];
