@@ -10,7 +10,6 @@ const MULIGE_AGENTER = [
   "U0AU9EB7F61", // Marius
   "U0163L554HH", // Eirik
   "U01PLCAA12R", // Geir
-  "U07BP7J2FGT", // Håkon
   "U0AKKLHS3N1", // Peter
 ];
 
