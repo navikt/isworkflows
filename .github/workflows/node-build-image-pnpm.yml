@@ -7,8 +7,8 @@ on:
         required: false
         type: string
       node-version:
+        description: Overrides .nvmrc; defaults to 22 when neither is provided.
         required: false
-        default: '22'
         type: string
       publish-image:
         required: false
@@ -40,8 +40,12 @@ jobs:
       - name: Use Node
         uses: actions/setup-node@v6
         with:
-          node-version: ${{ inputs.node-version }}
-          cache: 'pnpm'
+          node-version: ${{ inputs.node-version || (hashFiles('.nvmrc') == '' && '22' || '') }}
+          node-version-file: .nvmrc
+          cache: "pnpm"
+      - name: Resolve Docker Node major
+        id: node-version
+        run: echo "major=$(node -p 'process.versions.node.split(".")[0]')" >> "$GITHUB_OUTPUT"
       - name: Install deps
         run: |
           pnpm install --frozen-lockfile
@@ -75,3 +79,5 @@ jobs:
         with:
           team: teamsykefravr
           tag: ${{ inputs.git-ref || github.sha }}
+          build_args: |
+            NODE_VERSION=${{ steps.node-version.outputs.major }}
