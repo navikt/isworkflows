@@ -22,7 +22,6 @@ on:
         type: string
       node-version:
         required: false
-        default: '22'
         type: string
 
 jobs:
